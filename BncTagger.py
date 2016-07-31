@@ -18,7 +18,8 @@ def parse_bnc_word_lemma():
     for line in fileinput.input('bnc.word.lemma.pos.txt'):
         lemma, word, tag, count, total, prob = line.split()
         # data parsing
-        lemma, word, tag, count, total, prob = lemma[1:-1], word[1:-1], tag[1:-1], float(count), float(total), float(prob)
+        lemma, word, tag = lemma[1:-1], word[1:-1], tag[1:-1]
+        count, total, prob = float(count), float(total), float(prob)
         # ignore foreign words (tag = F)
         if tag == 'F':
             continue
@@ -45,7 +46,7 @@ def get_connection(db_path='bnc_word_lemma_pos.db'):
 def search_lemma(word):
     with get_connection() as conn:
         cur = conn.cursor()
-        cmd = 'SELECT lemma FROM WordLemma WHERE word=? and tag="v" ORDER BY probability DESC;'
+        cmd = 'SELECT lemma FROM WordLemma WHERE word=? ORDER BY probability DESC;'
         for res in cur.execute(cmd, (word,)):
             return res[0]
 
@@ -92,7 +93,7 @@ class BncTagger:
             'FROM WordLemma '
             'WHERE word in ({0}) '
             'GROUP BY word;'
-        ).format(', '.join('?'*len(words)))
+        ).format(', '.join('?' * len(words)))
 
         pos_dict = defaultdict(lambda: 'None')
         pos_dict.update((word.lower(), pos) for word, pos, prob in cur.execute(cmd, words))
