@@ -1,6 +1,5 @@
 import fileinput
 import sqlite3
-from itertools import izip
 from collections import defaultdict
 
 TABLE_SCHEMA = (
@@ -77,13 +76,11 @@ class BncTagger:
     def search_tag(self, word):
         cur = self.conn.cursor()
         cmd = (
-            'SELECT tag, MAX(probability) '
+            'SELECT tag, probability '
             'FROM WordLemma '
-            'WHERE word=? '
-            'GROUP BY word;'
+            'WHERE word=?;'
         )
-        cur.execute(cmd, (word,))
-        return cur.fetchone()
+        return [row for row in cur.execute(cmd, (word,))]
 
     def parse(self, words):
         cur = self.conn.cursor()
@@ -108,4 +105,4 @@ if __name__ == '__main__':
     words = 'This concert hall was too small to enter all of the audience .'.split()
     tagger = BncTagger()
     tagged = tagger.parse(words)
-    print ' '.join('%s/%s' % wordTag for wordTag in izip(words, tagged))
+    print(' '.join('%s/%s' % wordTag for wordTag in zip(words, tagged)))
